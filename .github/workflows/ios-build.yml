@@ -1,0 +1,57 @@
+name: Build unsigned iOS .ipa
+
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build-unsigned:
+    runs-on: macos-latest
+    env:
+      WORKSPACE: 'bolivision-ios.xcodeproj'
+      SCHEME: 'bolivisionairtv'
+      CONFIGURATION: 'Release'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install CocoaPods (if needed)
+        run: |
+          if [ -f "bolivisionairtv/Podfile" ]; then
+            sudo gem install cocoapods
+            pod install --project-directory=bolivisionairtv
+          fi
+
+      - name: Build .xcarchive
+        run: |
+          xcodebuild archive \
+            -project $WORKSPACE \
+            -scheme $SCHEME \
+            -configuration $CONFIGURATION \
+            -archivePath $PWD/build/app.xcarchive \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Export unsigned .ipa
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath $PWD/build/app.xcarchive \
+            -exportPath $PWD/build \
+            -exportOptionsPlist exportOptions.plist \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsigned-ipa
+          path: build/*.ipa
+
+      - name: Show Xcode build logs if failed
+        if: failure()
+        run: |
+          find ~/Library/Logs/DiagnosticReports -name "xcodebuild*.log" -exec cat {} + || echo "No Xcode logs found."

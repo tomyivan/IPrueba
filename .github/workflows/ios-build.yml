@@ -10,7 +10,7 @@ jobs:
   build-unsigned:
     runs-on: macos-latest
     env:
-      WORKSPACE: 'bolivisionairtv.xcworkspace'
+      WORKSPACE: 'bolivisionairtv/bolivisionairtv.xcworkspace'
       SCHEME: 'bolivisionairtv'
       CONFIGURATION: 'Release'
     steps:

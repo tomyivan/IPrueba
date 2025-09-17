@@ -40,7 +40,7 @@
 		8A01D2BD2E74B8F700421386 /* entelFutbolero5.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 8A01D2A72E74B8F700421386 /* entelFutbolero5.mp4 */; };
 		8A01D2BE2E74B8F700421386 /* entelFutbolero6.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 8A01D2A82E74B8F700421386 /* entelFutbolero6.mp4 */; };
 		8A01D2BF2E74B8F700421386 /* estudio.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 8A01D2A92E74B8F700421386 /* estudio.mp4 */; };
-		8A01D2C22E74B9B800421386 /* exportOptions.plist in Resources */ = {isa = PBXBuildFile; fileRef = 8A01D2C02E74B9B800421386 /* exportOptions.plist */; };
+		// 8A01D2C22E74B9B800421386 /* exportOptions.plist in Resources */ = {isa = PBXBuildFile; fileRef = 8A01D2C02E74B9B800421386 /* exportOptions.plist */; };
 		8A01D2C32E74B9B800421386 /* google_b64.txt in Resources */ = {isa = PBXBuildFile; fileRef = 8A01D2C12E74B9B800421386 /* google_b64.txt */; };
 /* End PBXBuildFile section */
 
@@ -101,7 +101,7 @@
 		8A01D2412E74B4CB00421386 = {
 			isa = PBXGroup;
 			children = (
-				8A01D2C02E74B9B800421386 /* exportOptions.plist */,
+				   // 8A01D2C02E74B9B800421386 /* exportOptions.plist */,
 				8A01D2C12E74B9B800421386 /* google_b64.txt */,
 				8A01D24C2E74B4CB00421386 /* bolivisionairtv */,
 				8A01D24B2E74B4CB00421386 /* Products */,
@@ -260,7 +260,7 @@
 			files = (
 				8A01D2BE2E74B8F700421386 /* entelFutbolero6.mp4 in Resources */,
 				8A01D2AF2E74B8F700421386 /* bg_txt_password.png in Resources */,
-				8A01D2C22E74B9B800421386 /* exportOptions.plist in Resources */,
+				   // 8A01D2C22E74B9B800421386 /* exportOptions.plist in Resources */,
 				8A01D2B62E74B8F700421386 /* hdplogo_pres.png in Resources */,
 				8A01D2BF2E74B8F700421386 /* estudio.mp4 in Resources */,
 				8A01D2B02E74B8F700421386 /* bg_txt_username.png in Resources */,

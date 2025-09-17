@@ -1,0 +1,59 @@
+name: Build iOS app (Development)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby (for fastlane)
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.1'
+
+      - name: Install dependencies
+        run: |
+          gem install bundler
+          bundle install || true
+          sudo gem install fastlane -NV
+          brew install cocoapods
+          pod install --project-directory=bolivisionairtv
+
+      - name: Set up keychain and certificates
+        uses: apple-actions/import-codesign-certs@v2
+        with:
+          p12-file-base64: ${{ secrets.IOS_CERTIFICATE_P12 }}
+          p12-password: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
+
+      - name: Set up provisioning profile
+        uses: apple-actions/import-provisioning-profile@v1
+        with:
+          provisioning-profile-base64: ${{ secrets.IOS_PROVISION_PROFILE }}
+
+      - name: Build app
+        run: |
+          xcodebuild -workspace bolivision-ios.xcodeproj/project.xcworkspace \
+            -scheme bolivisionairtv \
+            -configuration Debug \
+            -sdk iphoneos \
+            -archivePath ${{ github.workspace }}/build/bolivisionairtv.xcarchive archive
+
+      - name: Export .ipa
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath ${{ github.workspace }}/build/bolivisionairtv.xcarchive \
+            -exportOptionsPlist exportOptions.plist \
+            -exportPath ${{ github.workspace }}/build
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bolivisionairtv-ipa
+          path: build/*.ipa

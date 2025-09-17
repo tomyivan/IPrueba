@@ -1,59 +1,60 @@
-name: Build iOS app (Development)
+name: Build unsigned iOS .ipa
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
-  build:
+  build-unsigned:
     runs-on: macos-latest
+
+    env:
+      WORKSPACE: 'bolivision-ios.xcodeproj'   # <- usa tu .xcworkspace o .xcodeproj
+      SCHEME: 'bolivisionairtv'               # <- nombre del scheme de tu app
+      CONFIGURATION: 'Release'
+      DERIVED_DATA: ${{ runner.temp }}/derived
+
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Ruby (for fastlane)
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.1'
-
-      - name: Install dependencies
+      - name: Install dependencies (Node/JS example)
         run: |
-          gem install bundler
-          bundle install || true
-          sudo gem install fastlane -NV
-          brew install cocoapods
-          pod install --project-directory=bolivisionairtv
+          if [ -f package-lock.json ]; then npm ci;
+          elif [ -f yarn.lock ]; then yarn install;
+          fi
 
-      - name: Set up keychain and certificates
-        uses: apple-actions/import-codesign-certs@v2
-        with:
-          p12-file-base64: ${{ secrets.IOS_CERTIFICATE_P12 }}
-          p12-password: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
-
-      - name: Set up provisioning profile
-        uses: apple-actions/import-provisioning-profile@v1
-        with:
-          provisioning-profile-base64: ${{ secrets.IOS_PROVISION_PROFILE }}
-
-      - name: Build app
+      - name: Install CocoaPods (if needed)
         run: |
-          xcodebuild -workspace bolivision-ios.xcodeproj/project.xcworkspace \
-            -scheme bolivisionairtv \
-            -configuration Debug \
-            -sdk iphoneos \
-            -archivePath ${{ github.workspace }}/build/bolivisionairtv.xcarchive archive
+          if [ -f "Podfile" ]; then
+            sudo gem install cocoapods
+            pod install --project-directory=ios
+          fi
 
-      - name: Export .ipa
+      - name: Build .xcarchive
+        run: |
+          xcodebuild archive \
+            -project $WORKSPACE \
+            -scheme $SCHEME \
+            -configuration $CONFIGURATION \
+            -archivePath $PWD/build/app.xcarchive \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Export unsigned .ipa
         run: |
           xcodebuild -exportArchive \
-            -archivePath ${{ github.workspace }}/build/bolivisionairtv.xcarchive \
-            -exportOptionsPlist exportOptions.plist \
-            -exportPath ${{ github.workspace }}/build
+            -archivePath $PWD/build/app.xcarchive \
+            -exportPath $PWD/build \
+            -exportOptionsPlist ./ios/ExportOptions.plist \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: bolivisionairtv-ipa
+          name: unsigned-ipa
           path: build/*.ipa

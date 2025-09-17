@@ -19,7 +19,7 @@ jobs:
 
       - name: Install CocoaPods (if needed)
         run: |
-          if [ -f "Podfile" ]; then
+          if [ -f "bolivisionairtv/Podfile" ]; then
             sudo gem install cocoapods
             pod install --project-directory=bolivisionairtv
           fi

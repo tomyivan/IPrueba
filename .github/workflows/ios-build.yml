@@ -1,5 +1,6 @@
 name: Build unsigned iOS .ipa
 
+
 on:
   push:
     branches: [ "main" ]
@@ -8,13 +9,10 @@ on:
 jobs:
   build-unsigned:
     runs-on: macos-latest
-
     env:
-      WORKSPACE: 'bolivision-ios.xcodeproj'   # Usa tu .xcodeproj
-      SCHEME: 'bolivisionairtv'               # Nombre del scheme de tu app
+      WORKSPACE: 'bolivision-ios.xcodeproj'
+      SCHEME: 'bolivisionairtv'
       CONFIGURATION: 'Release'
-      DERIVED_DATA: ${{ runner.temp }}/derived
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4

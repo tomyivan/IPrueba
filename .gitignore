@@ -1,0 +1,32 @@
+﻿# Xcode
+.DS_Store
+build/
+DerivedData/
+*.xcuserdatad
+xcuserdata/
+*.xcuserstate
+Pods/
+
+# SwiftPM
+.build/
+Package.resolved
+
+# Carthage
+Carthage/Build/
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+# Certificates and profiles (no subir nunca estos archivos)
+*.p12
+*.mobileprovision
+exportOptions.plist
+
+# Otros
+*.log
+*.tmp
+*.swp
+*.lock

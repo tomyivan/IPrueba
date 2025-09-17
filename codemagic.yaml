@@ -1,0 +1,80 @@
+workflows:
+  build-ios:
+    name: Build iOS (IPA + Simulator App)
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+    environment:
+      xcode: "15.2"
+      cocoapods: default
+      vars:
+        XCODE_WORKSPACE: "bolivision-ios.xcworkspace"
+        XCODE_SCHEME: "bolivisionairtv"
+    scripts:
+      - name: Clean Pods
+        script: |
+          rm -rf Pods Podfile.lock
+          pod deintegrate
+          xcodebuild clean -project bolivision-ios.xcodeproj -scheme bolivisionairtv || true
+          rm -rf ~/Library/Developer/Xcode/DerivedData/*
+      - name: Install pods
+        script: |
+          pod install --repo-update
+      - name: Force iOS 13 deployment target
+        script: |
+          sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = 12.0;/IPHONEOS_DEPLOYMENT_TARGET = 13.0;/g' bolivision-ios.xcodeproj/project.pbxproj
+          find Pods -name "project.pbxproj" -exec sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = 12.0;/IPHONEOS_DEPLOYMENT_TARGET = 13.0;/g' {} +
+      - name: Fix duplicate Info.plist issue
+        script: |
+          echo "🛠  Removing duplicate Info.plist from Copy Bundle Resources..."
+          sed -i.bak '/Info.plist in Resources/d' bolivision-ios.xcodeproj/project.pbxproj || true
+      - name: Create shared scheme if missing
+        script: |
+          set -e
+          cd $CM_BUILD_DIR
+          xcodebuild -list -project bolivision-ios.xcodeproj
+          if [ ! -f "bolivision-ios.xcodeproj/xcshareddata/xcschemes/bolivisionairtv.xcscheme" ]; then
+            echo "⚡ No scheme found, you need to add bolivisionairtv.xcscheme to your repo."
+            exit 1
+          fi
+      - name: Prepare xcodebuild logs
+        script: |
+          mkdir -p /tmp/xcodebuild_logs
+
+      # --- Build IPA unsigned ---
+      - name: Build and archive (iPhoneOS unsigned IPA)
+        script: |
+          set -o pipefail
+          xcodebuild -workspace "$XCODE_WORKSPACE" \
+            -scheme "$XCODE_SCHEME" \
+            -configuration Release \
+            -archivePath $CM_BUILD_DIR/build/${XCODE_SCHEME}.xcarchive \
+            archive \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_ALLOWED=NO
+      - name: Package unsigned IPA
+        script: |
+          mkdir -p $CM_BUILD_DIR/build/ipa
+          cd $CM_BUILD_DIR/build/${XCODE_SCHEME}.xcarchive/Products/Applications
+          mkdir Payload
+          cp -r $XCODE_SCHEME.app Payload/
+          zip -r9 $CM_BUILD_DIR/build/ipa/${XCODE_SCHEME}-unsigned.ipa Payload
+
+      # --- Build Simulator APP ---
+      - name: Build for Simulator (App Preview)
+        script: |
+          set -o pipefail
+          xcodebuild \
+            -workspace "$XCODE_WORKSPACE" \
+            -scheme "$XCODE_SCHEME" \
+            -sdk iphonesimulator \
+            -configuration Debug \
+            -derivedDataPath $CM_BUILD_DIR/sim_build \
+            build
+          mkdir -p $CM_BUILD_DIR/build/app
+          APP_PATH=$(find $CM_BUILD_DIR/sim_build/Build/Products/Debug-iphonesimulator -type d -name "$XCODE_SCHEME.app" | head -n 1)
+          echo "✅ App para simulador generada en: $APP_PATH"
+          cp -r "$APP_PATH" $CM_BUILD_DIR/build/app/
+
+    artifacts:
+      - $CM_BUILD_DIR/build/ipa/*.ipa   # IPA unsigned
+      - $CM_BUILD_DIR/build/app/*.app   # APP para Preview

@@ -1,60 +1,20 @@
-name: Build unsigned iOS .ipa
+name: Test Workflow
 
 on:
-  push:
-    branches: [ "main" ]
   workflow_dispatch:
+  push:
 
 jobs:
-  build-unsigned:
-    runs-on: macos-latest
-
-    env:
-      WORKSPACE: 'bolivision-ios.xcodeproj'   # <- usa tu .xcworkspace o .xcodeproj
-      SCHEME: 'bolivisionairtv'               # <- nombre del scheme de tu app
-      CONFIGURATION: 'Release'
-      DERIVED_DATA: ${{ runner.temp }}/derived
-
+  hello:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install dependencies (Node/JS example)
-        run: |
-          if [ -f package-lock.json ]; then npm ci;
-          elif [ -f yarn.lock ]; then yarn install;
-          fi
-
-      - name: Install CocoaPods (if needed)
-        run: |
-          if [ -f "Podfile" ]; then
-            sudo gem install cocoapods
-            pod install --project-directory=ios
-          fi
-
-      - name: Build .xcarchive
-        run: |
-          xcodebuild archive \
-            -project $WORKSPACE \
-            -scheme $SCHEME \
-            -configuration $CONFIGURATION \
-            -archivePath $PWD/build/app.xcarchive \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
-
-      - name: Export unsigned .ipa
-        run: |
-          xcodebuild -exportArchive \
-            -archivePath $PWD/build/app.xcarchive \
-            -exportPath $PWD/build \
-            -exportOptionsPlist ./ios/ExportOptions.plist \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: unsigned-ipa
-          path: build/*.ipa
+    - name: Hello World
+      run: echo "¡Hola! El workflow está funcionando 🎉"
+    
+    - name: Check repository
+      uses: actions/checkout@v4
+    
+    - name: List files
+      run: |
+        echo "Archivos en el repositorio:"
+        ls -la

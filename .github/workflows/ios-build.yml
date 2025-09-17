@@ -10,7 +10,7 @@ jobs:
   build-unsigned:
     runs-on: macos-latest
     env:
-      WORKSPACE: 'bolivision-ios.xcodeproj'
+  WORKSPACE: 'bolivisionairtv.xcworkspace'
       SCHEME: 'bolivisionairtv'
       CONFIGURATION: 'Release'
     steps:
@@ -27,7 +27,7 @@ jobs:
       - name: Build .xcarchive
         run: |
           xcodebuild archive \
-            -project $WORKSPACE \
+            -workspace $WORKSPACE \
             -scheme $SCHEME \
             -configuration $CONFIGURATION \
             -archivePath $PWD/build/app.xcarchive \
